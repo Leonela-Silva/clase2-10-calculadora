@@ -1,94 +1,155 @@
-const rates = {
-    blue: 0,
-    mep: 0,
-    ccl: 0,
-    tarjeta: 0,
-    oficial: 0,
-    cripto: 0
+// Valores de respaldo si la API no responde
+let quotesData = {
+    blue: { compra: 1220, venta: 1240, nombre: "Dólar Blue" },
+    oficial: { compra: 1000, venta: 1040, nombre: "Dólar Oficial" },
+    mep: { compra: 1190, venta: 1195, nombre: "Dólar MEP" },
+    ccl: { compra: 1210, venta: 1218, nombre: "Dólar CCL" },
+    tarjeta: { compra: 0, venta: 1664, nombre: "Dólar Tarjeta" },
+    cripto: { compra: 1230, venta: 1245, nombre: "Dólar Cripto" }
 };
 
-let modeUsdToArs = true;
+let usdToArsMode = true;
 
-const amountInput = document.getElementById('amountInput');
-const typeSelect = document.getElementById('typeSelect');
-const resultValue = document.getElementById('resultValue');
-const brechaInfo = document.getElementById('brechaInfo');
-const inputLabel = document.getElementById('inputLabel');
-const refreshBtn = document.getElementById('refreshBtn');
-
-const btnUsdToArs = document.getElementById('modeUsdToArs');
-const btnArsToUsd = document.getElementById('modeArsToUsd');
-
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    fetchRates();
+    initTabs();
+    fetchQuotes();
 
-    amountInput.addEventListener('input', calculate);
-    typeSelect.addEventListener('change', calculate);
-    refreshBtn.addEventListener('click', fetchRates);
+    // Listener para Conversor
+    document.getElementById('convertAmount').addEventListener('input', calculateConversion);
+    document.getElementById('convertType').addEventListener('change', calculateConversion);
+    document.getElementById('btnUsdToArs').addEventListener('click', () => setConversionMode(true));
+    document.getElementById('btnArsToUsd').addEventListener('click', () => setConversionMode(false));
 
-    btnUsdToArs.addEventListener('click', () => setMode(true));
-    btnArsToUsd.addEventListener('click', () => setMode(false));
+    // Listener para Plazo Fijo
+    document.getElementById('pfMonto').addEventListener('input', calculatePlazoFijo);
+    document.getElementById('pfTna').addEventListener('input', calculatePlazoFijo);
+    document.getElementById('pfDias').addEventListener('input', calculatePlazoFijo);
+
+    document.getElementById('refreshBtn').addEventListener('click', fetchQuotes);
 });
 
-function setMode(usdToArs) {
-    modeUsdToArs = usdToArs;
-    if (modeUsdToArs) {
-        btnUsdToArs.classList.add('active');
-        btnArsToUsd.classList.remove('active');
-        inputLabel.innerText = "Monto en USD:";
-    } else {
-        btnArsToUsd.classList.add('active');
-        btnUsdToArs.classList.remove('active');
-        inputLabel.innerText = "Monto en ARS:";
-    }
-    calculate();
+// Control de Pestañas
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
 }
 
-async function fetchRates() {
-    refreshBtn.innerText = "Cargando mercado...";
+// Obtención de Datos de la API
+async function fetchQuotes() {
+    const quotesGrid = document.getElementById('quotesGrid');
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.innerText = "⏳ Cargando...";
+
     try {
         const response = await fetch('https://dolarapi.com/v1/dolares');
-        const data = await response.json();
-
-        // Mapear respuesta a nuestro objeto de cotizaciones
-        data.forEach(item => {
-            const key = item.casa.toLowerCase();
-            if (rates.hasOwnProperty(key)) {
-                rates[key] = item.venta;
-                const el = document.getElementById(`val-${key}`);
-                if (el) el.innerText = `$${item.venta}`;
-            }
-        });
-
-        calculate();
-    } catch (err) {
-        alert("Error al obtener cotizaciones en tiempo real.");
+        if (response.ok) {
+            const data = await response.json();
+            data.forEach(item => {
+                const key = item.casa.toLowerCase();
+                if (quotesData[key]) {
+                    quotesData[key].compra = item.compra || item.venta;
+                    quotesData[key].venta = item.venta;
+                }
+            });
+        }
+    } catch (e) {
+        console.warn("API no disponible, usando valores de respaldo local.");
     } finally {
-        refreshBtn.innerText = "🔄 Actualizar Mercado";
+        renderQuotes();
+        calculateConversion();
+        calculatePlazoFijo();
+        refreshBtn.innerText = "🔄 Actualizar";
     }
 }
 
-function calculate() {
-    const amount = parseFloat(amountInput.value) || 0;
-    const selectedType = typeSelect.value;
-    const currentRate = rates[selectedType] || 0;
+// Renderizar Tarjetas de Cotizaciones
+function renderQuotes() {
+    const quotesGrid = document.getElementById('quotesGrid');
+    quotesGrid.innerHTML = '';
 
-    if (currentRate === 0) return;
+    Object.keys(quotesData).forEach(key => {
+        const item = quotesData[key];
+        const card = document.createElement('div');
+        card.className = 'q-card';
+        card.innerHTML = `
+            <div class="q-header">
+                <span class="q-title">${item.nombre}</span>
+                <span class="q-tag">ARS</span>
+            </div>
+            <div class="q-prices">
+                <div class="q-price-box">
+                    <span>Compra</span>
+                    <strong>$${item.compra || '--'}</strong>
+                </div>
+                <div class="q-price-box" style="text-align: right;">
+                    <span>Venta</span>
+                    <strong>$${item.venta}</strong>
+                </div>
+            </div>
+        `;
+        quotesGrid.appendChild(card);
+    });
+}
 
-    if (modeUsdToArs) {
-        const total = amount * currentRate;
-        resultValue.innerText = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(total);
+// Lógica de Conversión
+function setConversionMode(isUsdToArs) {
+    usdToArsMode = isUsdToArs;
+    document.getElementById('btnUsdToArs').classList.toggle('active', isUsdToArs);
+    document.getElementById('btnArsToUsd').classList.toggle('active', !isUsdToArs);
+    
+    document.getElementById('inputLabel').innerText = isUsdToArs 
+        ? "Monto a Convertir (USD):" 
+        : "Monto a Convertir ($ ARS):";
+
+    calculateConversion();
+}
+
+function calculateConversion() {
+    const amount = parseFloat(document.getElementById('convertAmount').value) || 0;
+    const type = document.getElementById('convertType').value;
+    const rate = quotesData[type] ? quotesData[type].venta : 0;
+    const oficialRate = quotesData.oficial ? quotesData.oficial.venta : 1;
+
+    const resultOutput = document.getElementById('resultOutput');
+    const brechaBadge = document.getElementById('brechaBadge');
+
+    if (rate === 0) return;
+
+    if (usdToArsMode) {
+        const total = amount * rate;
+        resultOutput.innerText = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(total);
     } else {
-        const total = amount / currentRate;
-        resultValue.innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
+        const total = amount / rate;
+        resultOutput.innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
     }
 
-    // Cálculo de brecha respecto al oficial
-    if (rates.oficial > 0 && selectedType !== 'oficial') {
-        const brecha = ((currentRate - rates.oficial) / rates.oficial) * 100;
-        brechaInfo.innerText = `Brecha con el Oficial: +${brecha.toFixed(1)}%`;
+    // Calcular Brecha con respecto al dólar Oficial
+    if (type !== 'oficial' && oficialRate > 0) {
+        const brecha = ((rate - oficialRate) / oficialRate) * 100;
+        brechaBadge.innerText = `Brecha vs Oficial: +${brecha.toFixed(1)}%`;
     } else {
-        brechaInfo.innerText = "Cotización de Referencia Base";
+        brechaBadge.innerText = "Dólar de Referencia Oficial";
     }
 }
-  
+
+// Lógica de Plazo Fijo
+function calculatePlazoFijo() {
+    const monto = parseFloat(document.getElementById('pfMonto').value) || 0;
+    const tna = parseFloat(document.getElementById('pfTna').value) || 0;
+    const dias = parseInt(document.getElementById('pfDias').value) || 0;
+
+    const ganancia = monto * (tna / 100) * (dias / 365);
+    const total = monto + ganancia;
+
+    document.getElementById('pfGanancia').innerText = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(ganancia);
+    document.getElementById('pfTotal').innerText = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(total);
+}
