@@ -3,49 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Dólar en Vivo</title>
+    <title>Hub Financiero - Cotizaciones & Conversor</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div class="calculator-card">
-        <h2>💵 Cotizador en Vivo</h2>
-        <p class="subtitle">Datos actualizados automáticamente</p>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>📊 Monitor Financiero</h1>
+            <p>Cotizaciones en tiempo real y conversor inteligente</p>
+        </header>
 
-        <!-- Tarjetas de Cotizaciones -->
-        <div class="quotes-grid">
-            <div class="quote-box">
-                <span class="label">Dólar Oficial</span>
-                <span id="oficialPrice" class="price">Cargando...</span>
+        <!-- Tablero de Cotizaciones -->
+        <div class="rates-grid" id="ratesGrid">
+            <div class="rate-card" id="card-blue">
+                <span class="rate-name">Dólar Blue</span>
+                <span class="rate-val" id="val-blue">...</span>
+                <span class="rate-type">Libre</span>
             </div>
-            <div class="quote-box highlight">
-                <span class="label">Dólar Blue</span>
-                <span id="bluePrice" class="price">Cargando...</span>
+            <div class="rate-card" id="card-mep">
+                <span class="rate-name">Dólar MEP</span>
+                <span class="rate-val" id="val-mep">...</span>
+                <span class="rate-type">Bolsa</span>
+            </div>
+            <div class="rate-card" id="card-ccl">
+                <span class="rate-name">Dólar CCL</span>
+                <span class="rate-val" id="val-ccl">...</span>
+                <span class="rate-type">Liqui</span>
+            </div>
+            <div class="rate-card" id="card-tarjeta">
+                <span class="rate-name">Dólar Tarjeta</span>
+                <span class="rate-val" id="val-tarjeta">...</span>
+                <span class="rate-type">Con Impuestos</span>
+            </div>
+            <div class="rate-card" id="card-oficial">
+                <span class="rate-name">Dólar Oficial</span>
+                <span class="rate-val" id="val-oficial">...</span>
+                <span class="rate-type">Banco Nación</span>
+            </div>
+            <div class="rate-card" id="card-cripto">
+                <span class="rate-name">Dólar Cripto</span>
+                <span class="rate-val" id="val-cripto">...</span>
+                <span class="rate-type">USDT / P2P</span>
             </div>
         </div>
 
-        <!-- Conversor -->
-        <div class="converter-box">
-            <div class="input-group">
-                <label for="typeSelect">Tipo de cambio:</label>
-                <select id="typeSelect">
-                    <option value="blue">Dólar Blue</option>
-                    <option value="oficial">Dólar Oficial</option>
-                </select>
+        <!-- Conversor Avanzado -->
+        <div class="calculator-card">
+            <h3>🧮 Conversor Multidivisa</h3>
+
+            <div class="direction-switch">
+                <button class="switch-btn active" id="modeUsdToArs">USD ➔ ARS</button>
+                <button class="switch-btn" id="modeArsToUsd">ARS ➔ USD</button>
             </div>
 
-            <div class="input-group">
-                <label for="amountInput">Monto en USD:</label>
-                <input type="number" id="amountInput" placeholder="Ej: 100" value="100">
+            <div class="input-row">
+                <div class="input-group">
+                    <label id="inputLabel">Monto en USD:</label>
+                    <input type="number" id="amountInput" value="100" min="0" placeholder="0">
+                </div>
+
+                <div class="input-group">
+                    <label>Tipo de Cambio:</label>
+                    <select id="typeSelect">
+                        <option value="blue">Dólar Blue</option>
+                        <option value="mep">Dólar MEP</option>
+                        <option value="ccl">Dólar CCL</option>
+                        <option value="tarjeta">Dólar Tarjeta</option>
+                        <option value="cripto">Dólar Cripto</option>
+                        <option value="oficial">Dólar Oficial</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="result-box">
-                <span>Total en Pesos (ARS):</span>
-                <strong id="resultAmount">$ 0.00</strong>
+            <div class="result-card">
+                <span class="result-label">Resultado Estimado:</span>
+                <span class="result-value" id="resultValue">$ 0.00</span>
+                <span class="brecha-info" id="brechaInfo">Cargando brecha...</span>
             </div>
+
+            <button id="refreshBtn" class="refresh-btn">🔄 Actualizar Mercado</button>
         </div>
-
-        <button id="refreshBtn" class="btn">🔄 Actualizar valores</button>
     </div>
 
     <script src="script.js"></script>
