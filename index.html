@@ -3,87 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Financiero - Cotizaciones & Conversor</title>
+    <title>Finanzas AR - Monitor & Calculadora</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="app-container">
-        <header class="app-header">
-            <h1>📊 Monitor Financiero</h1>
-            <p>Cotizaciones en tiempo real y conversor inteligente</p>
+    <div class="app-wrapper">
+        <!-- Encabezado -->
+        <header class="header">
+            <div class="brand">
+                <span class="logo-icon">📈</span>
+                <div>
+                    <h1>FINANZAS<span>.AR</span></h1>
+                    <p class="status-badge"><span class="pulse"></span> Mercado en Vivo</p>
+                </div>
+            </div>
+            <button id="refreshBtn" class="refresh-btn">🔄 Actualizar</button>
         </header>
 
-        <!-- Tablero de Cotizaciones -->
-        <div class="rates-grid" id="ratesGrid">
-            <div class="rate-card" id="card-blue">
-                <span class="rate-name">Dólar Blue</span>
-                <span class="rate-val" id="val-blue">...</span>
-                <span class="rate-type">Libre</span>
-            </div>
-            <div class="rate-card" id="card-mep">
-                <span class="rate-name">Dólar MEP</span>
-                <span class="rate-val" id="val-mep">...</span>
-                <span class="rate-type">Bolsa</span>
-            </div>
-            <div class="rate-card" id="card-ccl">
-                <span class="rate-name">Dólar CCL</span>
-                <span class="rate-val" id="val-ccl">...</span>
-                <span class="rate-type">Liqui</span>
-            </div>
-            <div class="rate-card" id="card-tarjeta">
-                <span class="rate-name">Dólar Tarjeta</span>
-                <span class="rate-val" id="val-tarjeta">...</span>
-                <span class="rate-type">Con Impuestos</span>
-            </div>
-            <div class="rate-card" id="card-oficial">
-                <span class="rate-name">Dólar Oficial</span>
-                <span class="rate-val" id="val-oficial">...</span>
-                <span class="rate-type">Banco Nación</span>
-            </div>
-            <div class="rate-card" id="card-cripto">
-                <span class="rate-name">Dólar Cripto</span>
-                <span class="rate-val" id="val-cripto">...</span>
-                <span class="rate-type">USDT / P2P</span>
-            </div>
-        </div>
+        <!-- Navegación por pestañas -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="tab-cotizaciones">💵 Cotizaciones</button>
+            <button class="tab-btn" data-tab="tab-conversor">🧮 Conversor</button>
+            <button class="tab-btn" data-tab="tab-plazofijo">🏦 Simulador Plazo Fijo</button>
+        </nav>
 
-        <!-- Conversor Avanzado -->
-        <div class="calculator-card">
-            <h3>🧮 Conversor Multidivisa</h3>
-
-            <div class="direction-switch">
-                <button class="switch-btn active" id="modeUsdToArs">USD ➔ ARS</button>
-                <button class="switch-btn" id="modeArsToUsd">ARS ➔ USD</button>
+        <!-- Pestaña 1: Cotizaciones -->
+        <main id="tab-cotizaciones" class="tab-content active">
+            <div class="cards-grid" id="quotesGrid">
+                <!-- Se llenan dinámicamente con JavaScript -->
+                <div class="loading-state">Cargando cotizaciones del mercado...</div>
             </div>
+        </main>
 
-            <div class="input-row">
-                <div class="input-group">
-                    <label id="inputLabel">Monto en USD:</label>
-                    <input type="number" id="amountInput" value="100" min="0" placeholder="0">
+        <!-- Pestaña 2: Conversor -->
+        <section id="tab-conversor" class="tab-content">
+            <div class="card panel">
+                <h3>Calculadora de Divisas</h3>
+                <div class="switch-mode">
+                    <button id="btnUsdToArs" class="mode-btn active">Dólares ➔ Pesos</button>
+                    <button id="btnArsToUsd" class="mode-btn">Pesos ➔ Dólares</button>
                 </div>
 
-                <div class="input-group">
-                    <label>Tipo de Cambio:</label>
-                    <select id="typeSelect">
-                        <option value="blue">Dólar Blue</option>
-                        <option value="mep">Dólar MEP</option>
-                        <option value="ccl">Dólar CCL</option>
-                        <option value="tarjeta">Dólar Tarjeta</option>
-                        <option value="cripto">Dólar Cripto</option>
-                        <option value="oficial">Dólar Oficial</option>
-                    </select>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label id="inputLabel">Monto a Convertir (USD):</label>
+                        <input type="number" id="convertAmount" value="100" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Dólar:</label>
+                        <select id="convertType">
+                            <option value="blue">Dólar Blue</option>
+                            <option value="mep">Dólar MEP</option>
+                            <option value="ccl">Dólar CCL</option>
+                            <option value="tarjeta">Dólar Tarjeta</option>
+                            <option value="oficial">Dólar Oficial</option>
+                            <option value="cripto">Dólar Cripto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <span>Resultado Estimado</span>
+                    <h2 id="resultOutput">$ 0,00</h2>
+                    <p id="brechaBadge" class="info-badge">Brecha: --%</p>
                 </div>
             </div>
+        </section>
 
-            <div class="result-card">
-                <span class="result-label">Resultado Estimado:</span>
-                <span class="result-value" id="resultValue">$ 0.00</span>
-                <span class="brecha-info" id="brechaInfo">Cargando brecha...</span>
+        <!-- Pestaña 3: Plazo Fijo -->
+        <section id="tab-plazofijo" class="tab-content">
+            <div class="card panel">
+                <h3>Simulador de Rendimientos en ARS</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Monto a Invertir ($ ARS):</label>
+                        <input type="number" id="pfMonto" value="500000" step="10000">
+                    </div>
+                    <div class="form-group">
+                        <label>Tasa Nominal Anual (% TNA):</label>
+                        <input type="number" id="pfTna" value="40" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Plazo (Días):</label>
+                        <input type="number" id="pfDias" value="30" step="1">
+                    </div>
+                </div>
+
+                <div class="pf-results">
+                    <div class="pf-card">
+                        <span>Ganancia Estimada</span>
+                        <h3 id="pfGanancia" class="text-green">$ 0</h3>
+                    </div>
+                    <div class="pf-card">
+                        <span>Monto Total al Finalizar</span>
+                        <h3 id="pfTotal">$ 0</h3>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <button id="refreshBtn" class="refresh-btn">🔄 Actualizar Mercado</button>
-        </div>
+        <footer class="footer">
+            <p>Datos sincronizados en tiempo real mediante DolarApi • Creado para GitHub Pages</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
